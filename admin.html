@@ -1,0 +1,515 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="robots" content="noindex, nofollow">
+
+    <title>22 Logistics | Admin Portal</title>
+
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+
+    <!-- ADMIN LOGIN -->
+
+    <section class="login-screen" id="loginScreen">
+
+        <div class="login-container">
+
+            <div class="admin-logo">
+                <h1>22 <span>Logistics</span></h1>
+                <p>ADMINISTRATION PORTAL</p>
+            </div>
+
+            <p class="login-subtitle">
+                Management portal for your business.
+            </p>
+
+            <div class="login-card">
+
+                <h2>Welcome back</h2>
+
+                <p class="login-description">
+                    Sign in to access your management dashboard.
+                </p>
+
+                <form id="loginForm">
+
+                    <div class="form-group">
+                        <label for="adminEmail">Email address</label>
+
+                        <input
+                            type="email"
+                            id="adminEmail"
+                            placeholder="Enter your email"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+
+                        <input
+                            type="password"
+                            id="adminPassword"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                        id="loginButton"
+                    >
+                        Sign in
+                    </button>
+
+                    <p id="loginMessage" class="message" aria-live="polite"></p>
+
+                </form>
+
+            </div>
+
+            <p class="login-footer">
+                22 Logistics · Secure management access
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- ADMIN DASHBOARD -->
+
+    <section class="dashboard" id="dashboard" hidden>
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-label">
+                <h2>22 <span>Logistics</span></h2>
+                <p>MANAGEMENT PORTAL</p>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Dashboard navigation">
+
+                <button
+                    type="button"
+                    class="nav-item active"
+                    data-section="overview"
+                >
+                    Overview
+                </button>
+
+                <button
+                    type="button"
+                    class="nav-item"
+                    data-section="bookings"
+                >
+                    Bookings
+                </button>
+
+                <button
+                    type="button"
+                    class="nav-item"
+                    data-section="vehicles"
+                >
+                    Vehicles
+                </button>
+
+                <button
+                    type="button"
+                    class="nav-item"
+                    data-section="settings"
+                >
+                    Settings
+                </button>
+
+            </nav>
+
+            <div class="sidebar-bottom">
+
+                <button
+                    type="button"
+                    class="nav-item"
+                    id="logoutButton"
+                >
+                    Sign out
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+
+        <main class="main-content">
+
+            <!-- HEADER -->
+
+            <header class="dashboard-header">
+
+                <div class="header-left">
+
+                    <button
+                        class="sidebar-toggle"
+                        id="sidebarToggle"
+                        type="button"
+                        aria-label="Toggle navigation"
+                        aria-expanded="false"
+                    >
+                        ☰
+                    </button>
+
+                    <div>
+                        <p class="header-label">22 LOGISTICS / ADMIN</p>
+                        <h1 id="pageTitle">Overview</h1>
+                    </div>
+
+                </div>
+
+                <div class="admin-profile">
+
+                    <div class="profile-circle">22</div>
+
+                    <span id="adminEmailDisplay">Administrator</span>
+
+                </div>
+
+            </header>
+
+
+            <!-- DASHBOARD CONTENT -->
+
+            <div class="dashboard-content">
+
+
+                <!-- OVERVIEW -->
+
+                <section
+                    class="dashboard-section active"
+                    id="overview"
+                >
+
+                    <div class="welcome-section">
+
+                        <span class="section-tag">MANAGEMENT</span>
+
+                        <h2>Dashboard overview</h2>
+
+                        <p>
+                            Manage your rental enquiries, vehicles and business information.
+                        </p>
+
+                    </div>
+
+
+                    <div class="stats-grid">
+
+                        <div class="stat-card">
+                            <p>Total bookings</p>
+                            <h3 id="totalBookings">0</h3>
+                        </div>
+
+                        <div class="stat-card">
+                            <p>Pending requests</p>
+                            <h3 id="pendingBookings">0</h3>
+                        </div>
+
+                        <div class="stat-card">
+                            <p>Active vehicles</p>
+                            <h3 id="activeVehicles">0</h3>
+                        </div>
+
+                    </div>
+
+
+                    <div class="content-card">
+
+                        <div class="card-heading">
+
+                            <h3>Recent rental enquiries</h3>
+
+                            <button
+                                type="button"
+                                class="text-button"
+                                data-section="bookings"
+                            >
+                                View all
+                            </button>
+
+                        </div>
+
+                        <div id="recentBookings" class="empty-state">
+                            Rental enquiries will appear here.
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- BOOKINGS -->
+
+                <section
+                    class="dashboard-section"
+                    id="bookings"
+                >
+
+                    <div class="section-top">
+
+                        <div>
+                            <span class="section-tag">CUSTOMER REQUESTS</span>
+                            <h2>Rental bookings</h2>
+                        </div>
+
+                        <select id="bookingFilter" aria-label="Filter bookings">
+                            <option value="all">All bookings</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+
+                    </div>
+
+                    <div class="content-card">
+
+                        <div id="bookingsList" class="empty-state">
+                            Bookings will appear here.
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- VEHICLES -->
+
+                <section
+                    class="dashboard-section"
+                    id="vehicles"
+                >
+
+                    <div class="section-top">
+
+                        <div>
+                            <span class="section-tag">FLEET MANAGEMENT</span>
+                            <h2>Manage vehicles</h2>
+                        </div>
+
+                    </div>
+
+
+                    <div class="content-card">
+
+                        <div class="card-heading">
+                            <h3>Add a vehicle</h3>
+                        </div>
+
+                        <form id="vehicleForm">
+
+                            <div class="form-row">
+
+                                <div class="form-group">
+                                    <label for="vehicleName">
+                                        Vehicle name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="vehicleName"
+                                        placeholder="Enter vehicle name"
+                                        maxlength="100"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="vehicleCategory">
+                                        Category
+                                    </label>
+
+                                    <select id="vehicleCategory" required>
+                                        <option value="">Select category</option>
+                                        <option value="SUV">SUV</option>
+                                        <option value="Sedan">Sedan</option>
+                                        <option value="Bus">Bus</option>
+                                        <option value="Truck">Truck</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="vehicleDescription">
+                                    Description
+                                </label>
+
+                                <textarea
+                                    id="vehicleDescription"
+                                    placeholder="Enter vehicle details"
+                                    maxlength="1000"
+                                    required
+                                ></textarea>
+                            </div>
+
+
+                            <div class="form-row">
+
+                                <div class="form-group">
+                                    <label for="vehiclePrice">
+                                        Rental price
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        id="vehiclePrice"
+                                        min="0"
+                                        step="0.01"
+                                        placeholder="Enter price"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="vehiclePriceUnit">
+                                        Price unit
+                                    </label>
+
+                                    <select id="vehiclePriceUnit" required>
+                                        <option value="day">Per day</option>
+                                        <option value="hour">Per hour</option>
+                                        <option value="week">Per week</option>
+                                        <option value="month">Per month</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="vehicleImage">
+                                    Vehicle image URL
+                                </label>
+
+                                <input
+                                    type="url"
+                                    id="vehicleImage"
+                                    placeholder="https://example.com/image.jpg"
+                                >
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="vehicleStatus">
+                                    Vehicle status
+                                </label>
+
+                                <select id="vehicleStatus" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+
+
+                            <div class="form-actions">
+
+                                <button
+                                    type="submit"
+                                    class="primary-button"
+                                >
+                                    Add vehicle
+                                </button>
+
+                            </div>
+
+                            <p
+                                id="vehicleMessage"
+                                class="message"
+                                aria-live="polite"
+                            ></p>
+
+                        </form>
+
+                    </div>
+
+
+                    <div class="content-card">
+
+                        <div class="card-heading">
+                            <h3>Vehicle inventory</h3>
+                        </div>
+
+                        <div id="vehiclesList" class="empty-state">
+                            Your vehicles will appear here.
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- SETTINGS -->
+
+                <section
+                    class="dashboard-section"
+                    id="settings"
+                >
+
+                    <div class="section-top">
+
+                        <div>
+                            <span class="section-tag">ACCOUNT</span>
+                            <h2>Settings</h2>
+                        </div>
+
+                    </div>
+
+
+                    <div class="content-card">
+
+                        <div class="card-heading">
+                            <h3>Administrator account</h3>
+                        </div>
+
+                        <p class="settings-label">
+                            Signed in as:
+                        </p>
+
+                        <p
+                            id="settingsAdminEmail"
+                            class="settings-email"
+                        >
+                            Administrator
+                        </p>
+
+                    </div>
+
+                </section>
+
+
+            </div>
+
+        </main>
+
+    </section>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script type="module" src="js/admin.js"></script>
+
+</body>
+</html>
