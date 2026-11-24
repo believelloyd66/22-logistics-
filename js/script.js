@@ -109,6 +109,25 @@ function getToday() {
 }
 
 
+// Returns the calendar day after a supplied date.
+
+function getNextDay(dateString) {
+
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    const date = new Date(year, month - 1, day);
+
+    date.setDate(date.getDate() + 1);
+
+    return (
+        date.getFullYear() + "-" +
+        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+        String(date.getDate()).padStart(2, "0")
+    );
+
+}
+
+
 function formatDate(dateString) {
 
     return new Date(dateString + "T00:00:00").toLocaleDateString(
@@ -196,7 +215,6 @@ function getSafeImageUrl(value) {
     return null;
 
 }
-
 
 // =========================================
 // 6. VEHICLE SELECT DROPDOWN
@@ -444,7 +462,6 @@ async function loadVehicles() {
 
 loadVehicles();
 
-
 // =========================================
 // 9. DATE VALIDATION
 // =========================================
@@ -455,7 +472,9 @@ function updateDateLimits() {
 
     pickupDate.min = today;
 
-    returnDate.min = pickupDate.value || today;
+    returnDate.min = pickupDate.value
+        ? getNextDay(pickupDate.value)
+        : getNextDay(today);
 
 }
 
@@ -468,7 +487,7 @@ pickupDate.addEventListener("change", function () {
 
     if (
         returnDate.value &&
-        returnDate.value < pickupDate.value
+        returnDate.value <= pickupDate.value
     ) {
 
         returnDate.value = "";
@@ -486,21 +505,15 @@ bookingForm.addEventListener("submit", async function (event) {
 
     event.preventDefault();
 
-
     const name = customerName.value.trim();
-
     const phone = customerPhone.value.trim();
-
     const vehicleId = vehicleSelect.value;
-
     const pickup = pickupDate.value;
-
     const returning = returnDate.value;
-
     const extraMessage = message.value.trim();
 
 
-    // Basic validation
+    // BASIC VALIDATION
 
     if (
         !name ||
@@ -511,7 +524,6 @@ bookingForm.addEventListener("submit", async function (event) {
     ) {
 
         alert("Please complete all required fields.");
-
         return;
 
     }
@@ -520,7 +532,6 @@ bookingForm.addEventListener("submit", async function (event) {
     if (name.length < 2 || name.length > 100) {
 
         alert("Please enter a valid name.");
-
         return;
 
     }
@@ -529,7 +540,6 @@ bookingForm.addEventListener("submit", async function (event) {
     if (!/^[+0-9()\-\s]{7,20}$/.test(phone)) {
 
         alert("Please enter a valid phone number.");
-
         return;
 
     }
@@ -538,16 +548,14 @@ bookingForm.addEventListener("submit", async function (event) {
     if (pickup < getToday()) {
 
         alert("Pickup date cannot be in the past.");
-
         return;
 
     }
 
 
-    if (returning < pickup) {
+    if (returning <= pickup) {
 
-        alert("Return date cannot be earlier than pickup date.");
-
+        alert("Return date must be at least one day after pickup date.");
         return;
 
     }
@@ -556,14 +564,12 @@ bookingForm.addEventListener("submit", async function (event) {
     if (extraMessage.length > 1000) {
 
         alert("Your additional information is too long.");
-
         return;
 
     }
 
 
-    // Confirm that the selected vehicle is in the
-    // active vehicles currently loaded from Firestore.
+    // CONFIRM THAT THE SELECTED VEHICLE IS ACTIVE
 
     if (
         vehicleId !== "any" &&
@@ -579,7 +585,7 @@ bookingForm.addEventListener("submit", async function (event) {
     }
 
 
-    // Prepare enquiry details
+    // PREPARE ENQUIRY DETAILS
 
     const selectedVehicleName =
         vehicleId === "any"
@@ -588,42 +594,33 @@ bookingForm.addEventListener("submit", async function (event) {
 
 
     const formattedPickup = formatDate(pickup);
-
     const formattedReturn = formatDate(returning);
 
 
     submitButton.disabled = true;
-
     submitButton.textContent = "Submitting Enquiry...";
 
 
     try {
 
-        // Save the enquiry to Firestore.
+        // SAVE ENQUIRY TO FIRESTORE
 
         const bookingRef = await addDoc(
             collection(db, "bookings"),
             {
                 customerName: name,
-
                 customerPhone: phone,
-
                 vehicleId: vehicleId,
-
                 pickupDate: pickup,
-
                 returnDate: returning,
-
                 message: extraMessage,
-
                 status: "pending",
-
                 createdAt: serverTimestamp()
             }
         );
 
 
-        // Generate the customer reference message.
+        // GENERATE CUSTOMER REFERENCE MESSAGE
 
         const enquiry = `
 22 LOGISTICS — RENTAL ENQUIRY
@@ -658,10 +655,9 @@ Thank you.
         enquiryMessage.value = enquiry;
 
 
-        // Display success result.
+        // DISPLAY SUCCESS RESULT
 
         bookingForm.hidden = true;
-
         enquiryResult.hidden = false;
 
         enquiryResult.querySelector("h4").textContent =
@@ -672,7 +668,6 @@ Thank you.
 
 
         copyEnquiry.hidden = false;
-
         copyEnquiry.textContent = "Copy Enquiry";
 
         resetEnquiry.textContent = "Submit Another Enquiry";
@@ -695,7 +690,6 @@ Thank you.
     } finally {
 
         submitButton.disabled = false;
-
         submitButton.textContent = "Submit Rental Enquiry →";
 
     }
@@ -720,7 +714,6 @@ copyEnquiry.addEventListener("click", async function () {
     } catch (error) {
 
         enquiryMessage.focus();
-
         enquiryMessage.select();
 
         const copied = document.execCommand("copy");
@@ -749,13 +742,11 @@ resetEnquiry.addEventListener("click", function () {
     bookingForm.reset();
 
     bookingForm.hidden = false;
-
     enquiryResult.hidden = true;
 
     enquiryMessage.value = "";
 
     copyEnquiry.hidden = false;
-
     copyEnquiry.textContent = "Copy Enquiry";
 
     resetEnquiry.textContent = "Submit Another Enquiry";
