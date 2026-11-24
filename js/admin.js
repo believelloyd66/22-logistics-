@@ -1,4 +1,3 @@
-
 import { db, auth } from "./firebase-config.js";
 
 import {
@@ -46,6 +45,7 @@ const bookingFilter = document.getElementById("bookingFilter");
 let currentAdmin = null;
 let vehicles = [];
 let bookings = [];
+let loginNotice = "";
 
 
 /* =====================================
@@ -120,6 +120,7 @@ async function verifyAdmin(user) {
 ===================================== */
 
 loginForm.addEventListener("submit", async function (event) {
+
     event.preventDefault();
 
     const email = adminEmail.value.trim();
@@ -133,43 +134,59 @@ loginForm.addEventListener("submit", async function (event) {
     loginButton.disabled = true;
     loginButton.textContent = "Signing in...";
 
+    showLoginMessage("");
+
     try {
-        const result = await signInWithEmailAndPassword(
+
+        await signInWithEmailAndPassword(
             auth,
             email,
             password
         );
 
-        const allowed = await verifyAdmin(result.user);
-
-        if (!allowed) {
-            await signOut(auth);
-
-            showLoginMessage(
-                "This account does not have administrator access."
-            );
-
-            return;
-        }
-
-        currentAdmin = result.user;
-
-        await showDashboard();
-
     } catch (error) {
-        console.error("Login error:", error);
+
+        console.error("Authentication error:", error);
+
+        const messages = {
+            "auth/invalid-credential":
+                "Incorrect email or password.",
+
+            "auth/user-not-found":
+                "No account exists with this email.",
+
+            "auth/wrong-password":
+                "Incorrect email or password.",
+
+            "auth/invalid-email":
+                "The email address is invalid.",
+
+            "auth/too-many-requests":
+                "Too many attempts. Try again later.",
+
+            "auth/network-request-failed":
+                "Network error. Check your internet connection.",
+
+            "auth/user-disabled":
+                "This account has been disabled.",
+
+            "auth/operation-not-allowed":
+                "Email and password login is not enabled."
+        };
 
         showLoginMessage(
-            "Login failed. Check your email and password."
+            messages[error.code] ||
+            "Authentication failed. Error: " + error.code
         );
 
     } finally {
+
         loginButton.disabled = false;
         loginButton.textContent = "Sign in";
+
     }
+
 });
-
-
 /* =====================================
    AUTHENTICATION STATE
 ===================================== */
@@ -183,23 +200,37 @@ onAuthStateChanged(auth, async function (user) {
     }
 
     try {
+
         const allowed = await verifyAdmin(user);
 
         if (!allowed) {
+
+            loginNotice =
+                "Your account exists, but administrator access has not been granted.";
+
             await signOut(auth);
+
             showLoginScreen();
+
             return;
         }
 
         currentAdmin = user;
+        loginNotice = "";
 
         await showDashboard();
 
     } catch (error) {
+
         console.error("Admin verification error:", error);
 
+        loginNotice =
+            "Could not verify administrator access. Check your connection and try again.";
+
         await signOut(auth);
+
         showLoginScreen();
+
     }
 
 });
@@ -210,16 +241,20 @@ onAuthStateChanged(auth, async function (user) {
 ===================================== */
 
 function showLoginScreen() {
+
     loginScreen.hidden = false;
     dashboard.hidden = true;
 
     if (loginMessage) {
-        loginMessage.textContent = "";
+        loginMessage.textContent = loginNotice;
+        loginMessage.className = "message error";
     }
+
 }
 
 
 async function showDashboard() {
+
     loginScreen.hidden = true;
     dashboard.hidden = false;
 
@@ -237,6 +272,7 @@ async function showDashboard() {
     }
 
     await loadDashboardData();
+
 }
 
 
@@ -247,15 +283,20 @@ async function showDashboard() {
 logoutButton.addEventListener("click", async function () {
 
     try {
+
         await signOut(auth);
 
         currentAdmin = null;
+        loginNotice = "";
 
         showLoginScreen();
 
     } catch (error) {
+
         console.error("Logout error:", error);
+
         alert("Could not sign out. Please try again.");
+
     }
 
 });
@@ -298,19 +339,27 @@ function switchSection(sectionName) {
     }
 
     document.querySelectorAll(".nav-item[data-section]").forEach(function (nav) {
+
         nav.classList.toggle(
             "active",
             nav.dataset.section === sectionName
         );
+
     });
 
+
     document.querySelectorAll(".dashboard-section").forEach(function (section) {
+
         section.classList.remove("active");
+
     });
+
 
     target.classList.add("active");
 
+
     if (pageTitle) {
+
         const activeNav = document.querySelector(
             `.nav-item[data-section="${sectionName}"]`
         );
@@ -318,9 +367,11 @@ function switchSection(sectionName) {
         pageTitle.textContent = activeNav
             ? activeNav.textContent.trim()
             : sectionName;
+
     }
 
     closeSidebar();
+
 }
 
 
@@ -365,6 +416,10 @@ async function loadDashboardData() {
         loadVehicles(),
         loadBookings()
     ]);
+
+    // Refresh bookings after vehicles have loaded.
+    displayBookings();
+    displayRecentBookings();
 
     updateStatistics();
 
@@ -414,6 +469,10 @@ async function loadVehicles() {
 }
 
 
+/* =====================================
+   DISPLAY VEHICLES
+===================================== */
+
 function displayVehicles() {
 
     const container = document.getElementById("vehiclesList");
@@ -430,6 +489,7 @@ function displayVehicles() {
 
         return;
     }
+
 
     container.innerHTML = vehicles.map(function (vehicle) {
 
@@ -481,7 +541,9 @@ function displayVehicles() {
     container.querySelectorAll("[data-edit-vehicle]").forEach(function (button) {
 
         button.addEventListener("click", function () {
+
             editVehicle(button.dataset.editVehicle);
+
         });
 
     });
@@ -490,7 +552,9 @@ function displayVehicles() {
     container.querySelectorAll("[data-delete-vehicle]").forEach(function (button) {
 
         button.addEventListener("click", function () {
+
             removeVehicle(button.dataset.deleteVehicle);
+
         });
 
     });
@@ -523,6 +587,7 @@ if (vehicleForm) {
         const status = document.getElementById("vehicleStatus").value;
 
         const message = document.getElementById("vehicleMessage");
+
 
         if (
             !name ||
@@ -572,8 +637,10 @@ if (vehicleForm) {
         );
 
         if (submitButton) {
+
             submitButton.disabled = true;
             submitButton.textContent = "Saving...";
+
         }
 
 
@@ -591,6 +658,7 @@ if (vehicleForm) {
                 createdAt: serverTimestamp()
 
             });
+
 
             vehicleForm.reset();
 
@@ -614,8 +682,10 @@ if (vehicleForm) {
         } finally {
 
             if (submitButton) {
+
                 submitButton.disabled = false;
                 submitButton.textContent = "Add vehicle";
+
             }
 
         }
@@ -623,8 +693,6 @@ if (vehicleForm) {
     });
 
 }
-
-
 /* =====================================
    EDIT VEHICLE
 ===================================== */
@@ -773,6 +841,7 @@ async function loadBookings() {
 
         });
 
+
         // Show newest enquiries first.
         bookings.sort(function (a, b) {
 
@@ -782,6 +851,7 @@ async function loadBookings() {
             return timeB - timeA;
 
         });
+
 
         displayBookings();
         displayRecentBookings();
@@ -848,6 +918,33 @@ function displayBookings() {
             : vehicle?.name || booking.vehicleId || "Not specified";
 
 
+        const actionButtons = booking.status === "pending"
+            ? `
+                <div class="form-actions">
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-booking-status="${escapeHTML(booking.id)}"
+                        data-status="confirmed"
+                    >
+                        Confirm
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        data-booking-status="${escapeHTML(booking.id)}"
+                        data-status="rejected"
+                    >
+                        Reject
+                    </button>
+
+                </div>
+            `
+            : "";
+
+
         return `
             <div class="content-card">
 
@@ -870,27 +967,7 @@ function displayBookings() {
                     </span>
                 </p>
 
-                <div class="form-actions">
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-booking-status="${escapeHTML(booking.id)}"
-                        data-status="confirmed"
-                    >
-                        Confirm
-                    </button>
-
-                    <button
-                        type="button"
-                        class="secondary-button"
-                        data-booking-status="${escapeHTML(booking.id)}"
-                        data-status="rejected"
-                    >
-                        Reject
-                    </button>
-
-                </div>
+                ${actionButtons}
 
             </div>
         `;
